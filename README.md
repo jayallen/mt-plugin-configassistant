@@ -27,7 +27,11 @@ can begin using this plugin today.
 
 ## Installation ##
 
-This plugin is installed [just like any other Movable Type Plugin](http://www.majordojo.com/2008/12/the-ultimate-guide-to-installing-movable-type-plugins.php).
+The latest version of the plugin can be downloaded from [its GitHub repo](http://github.com/endevver/mt-plugin-configassistant):
+
+&nbsp;&nbsp;[http://github.com/endevver/mt-plugin-configassistant/downloads](http://github.com/endevver/mt-plugin-configassistant/downloads)
+
+It is installed [just like any normal Movable Type Plugin](http://www.majordojo.com/2008/12/the-ultimate-guide-to-installing-movable-type-plugins.php).
 
 ## Reference and Documentation ##
 
@@ -39,8 +43,8 @@ your plugin applies the corresponding template set then a "Theme Options" menu i
 will automatically appear in their "Design" menu. They can click that menu item to 
 be taken directly to a page on which they can edit all of their theme's settings.
 
-    id: MyPluginID
     name: My Plugin
+    id: MyPlugin
     template_sets:
         my_awesome_theme:
             options:
@@ -75,8 +79,8 @@ To use Config Assistant as the rendering and enablement platform for plugin
 settings, use the same `options` struct you would for theme options, but use
 it as a root level element. For example:
 
-    id: MyPluginID
     name: My Plugin
+    id: MyPlugin
     options:
       fieldsets:
         homepage:
@@ -156,18 +160,30 @@ field:
 
 **Example Radio Image**
 
-The `radio-image` type supports a special syntax for the `values` attribute. 
-The list of radio button is a comma-limitted list of image/value pairs (delimitted 
-by a colon). Got that? The images you reference are all relative to Movable Type's
-mt-static directory. Confused? I think a sample will make it perfectly clear:
+The `radio-image` type supports a special syntax for the `values` attribute which
+allows you to associate an image with each choice:
+
+    values: "IMGRELPATH":"LABEL", "IMGRELPATH2":"LABEL2"
+
+In the above, each `IMGRELPATH` represents the path to an image relative to Movable
+Type's mt-static directory and each `LABEL` is the accompanying label for the option.
+The path and label are separated by a colon and each combined value is separated by
+a comma.
+
+For example, `radio-images` defining a homepage layout for a plugin `Foo` might look
+like this:
 
       homepage_layout:
         type: radio-image
         label: 'Homepage Layout'
         hint: 'The layout for the homepage of your blog.'
         tag: 'HomepageLayout'
-        values: >
-          "plugins/Foo/layout-1.png":"Layout 1","plugins/Foo/layout-2.png":"Layout 2"
+        values: "plugins/Foo/layout-1.png":"Layout 1","plugins/Foo/layout-2.png":"Layout 2"
+
+The above will present the user with two radio buttons labelled Layout 1 and Layout 2 
+accompanied by a representative image demonstrating each option.
+
+_FIXME: Insert screenshot_
 
 #### Defining Custom Field Types ####
 
@@ -178,21 +194,24 @@ type handler in your plugin's `config.yaml` file, like so:
       my_custom_type:
         handler: $MyPlugin::MyPlugin::custom_type_hdlr
 
-Then in `lib/MyPlugin.pm` you would implement your handler. Here is an example handler
-that outputs the HTML for a HTML pulldown or select menu:
+Then in `plugins/MyPlugin/lib/MyPlugin.pm` you would implement your handler.
+Here is an example handler that outputs the HTML for a HTML pulldown or select
+menu:
 
     sub custom_type_hdlr {
       my $app = shift;
       my ($field_id, $field, $value) = @_;
-      my $out;
-      my @values = split(",",$field->{values});
-      $out .= "      <ul>\n";
-      foreach (@values) {
-          $out .= "<li><input type=\"radio\" name=\"$field_id\" value=\"$_\"".
-	     ($value eq $_ ? " checked=\"checked\"" : "") ." class=\"rb\" />".$_."</li>\n";
+      my @values = split( ",", $field->{values} );
+      my $class  = 'class="rb"';
+      my $type   = 'type="radio"';
+      my @options;
+      foreach my $opt (@values) {
+          my $checked = $opt eq $value ? " checked=\"checked\"" : "";
+          push( @options, qq(
+            <input $type name="$field_id" value="$opt" $checked $class /> $opt
+          ));
       }
-      $out .= "      </ul>\n";
-      return $out;
+      return '<ul><li>', join("</li>\n<li>", @options), '</li></ul>';
     }
 
 With these two tasks complete, you can now use your new config type in your template set:
@@ -258,7 +277,8 @@ use this syntax:
 When the callback is invoked, it will be invoked with the following input parameters:
 
 * `$cb` - The MT::Callback object for the current callback.
-* `$app` - An object instance for the currently running app, most likely an MT::App subclass.
+* `$app` - An object instance for the currently running app, most likely an
+  MT::App subclass.
 * `$option_hash` - A reference to a hash containing the name/value pairs representing
   this modified theme option in the registry.
 * `$old_value` - The value of the option prior to being modified.
@@ -283,33 +303,34 @@ the value of the config value one last time before being committed to the databa
 
 Config Assistat has the ability to trigger a callback when any option within a 
 plugin changes. To register a callback of this nature you would use the following
-syntax:
+syntax replacing `<plugin_id>` with your plugin's `id` attribute value and `<handler>`
+with a typical handler reference:
 
     callbacks:
-      options_change.plugin.<plugin_id>: $MyPlugin::MyPlugin::handler
+      options_change.plugin.<plugin_id>: <handler>
+
+For example:
+
+    callbacks:
+      options_change.plugin.MyPlugin: $MyPlugin::MyPlugin::handler
 
 When the callback is invoked, it will be invoked with the following input parameters:
 
-* `$app` - A reference to the MT::App instance currently in-context.
+* `$cb` - The MT::Callback object for the current callback.
+* `$app` - An object instance for the currently running app, most likely an MT::App
+subclass.
 * `$plugin` - A reference to the plugin object that was changed
 
-## Sample config.yaml ##
-
-    blog_config_template: '<mt:PluginConfigForm id="MyPluginID">'
-    plugin_config:
-        MyPluginID:
-            fieldset_1:
-                label: "This is a label for my fieldset"
-                description: "This is some text to display below my fieldset label"
-                feedburner_id:
-                    type: text
-                    label: "Feedburner ID"
-                    hint: "This is the name of your Feedburner feed."
-                    tag: 'MyPluginFeedburnerID'
+_FIXME: Does $plugin refer to an MT::Plugin or MT::PluginSettings object?  The
+former is unnecessary as you can get the same thing from `$cb->plugin`.  It seems
+like we should be passing the full options hashref as well as a "changed values"
+hashref._
 
 ## Support ##
 
 http://forums.movabletype.org/codesixapartcom/project-support/
+
+FIXME: Lighthouse project?
 
 ## Info ##
 
