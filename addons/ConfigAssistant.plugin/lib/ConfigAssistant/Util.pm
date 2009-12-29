@@ -37,9 +37,9 @@ sub find_option_def {
         ###l4p $logger->debug('Template set options $r: ', l4mtdump($r));
         if ($r->{$set}->{'options'}) { # FIXME Could error if $r or $r->{$set} are undefined.
             foreach (keys %{$r->{$set}->{'options'}}) {
-                # FIXME Optimize with:  next unless $id eq $_;
+                next unless $id eq $_;
                 ###l4p $logger->info("Found template set option: $_");
-                $opt = $r->{$set}->{'options'}->{$id} if ($id eq $_); # FIXME Clobbers any existing value
+                $opt = $r->{$set}->{'options'}->{$id}; # FIXME Clobbers any existing value
                 ###l4p $logger->info('Set $opt: ', l4mtdump($opt));
             }
         }
@@ -51,9 +51,9 @@ sub find_option_def {
         ###l4p $logger->debug('Registry options $r: ', l4mtdump($r));
         if ($r) {
             foreach (keys %{$r}) {
-                # FIXME Optimize with:  next unless $id eq $_;
+                next unless $id eq $_;
                 ###l4p $logger->info("Found MT registry option: $_");
-                $opt = $r->{$id} if ($id eq $_); # FIXME Clobbers any existing value
+                $opt = $r->{$id}; # FIXME Clobbers any existing value
                 ###l4p $logger->info('Set $opt: ', l4mtdump($opt));
             }
         }
