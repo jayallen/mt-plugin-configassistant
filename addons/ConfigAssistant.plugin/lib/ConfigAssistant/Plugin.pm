@@ -548,7 +548,7 @@ sub plugin_options {
     my $plugin = shift;
     my ($param, $scope) = @_;
 
-    my $app  = MT->app;
+    my $app  = MT->app;   # FIXME Is there a reason you're using app() and not instance()?
     my $blog;
     if ($scope =~ /blog:(\d+)/) {
         $blog = MT->model('blog')->load( $1 );

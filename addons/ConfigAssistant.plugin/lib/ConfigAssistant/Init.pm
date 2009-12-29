@@ -3,6 +3,9 @@ package ConfigAssistant::Init;
 use strict;
 use ConfigAssistant::Util qw( find_theme_plugin find_option_plugin );
 
+use MT::Log::Log4perl qw( l4mtdump ); use Log::Log4perl qw( :resurrect );
+our $logger;
+
 sub plugin {
     return MT->component('ConfigAssistant');
 }
@@ -19,6 +22,8 @@ sub init_app {
 sub init_options {
 #    my $callback = shift;
     my $app = shift;
+
+    ###l4p $logger ||= MT::Log::Log4perl->new(); $logger->trace();
 
     # For each plugin, convert options into settings
     my $has_blog_settings = 0;
