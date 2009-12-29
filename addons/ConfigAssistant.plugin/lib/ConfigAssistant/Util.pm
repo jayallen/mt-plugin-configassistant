@@ -24,42 +24,49 @@ sub find_template_def {
 }
 
 sub find_option_def {
-    my ($app,$id) = @_;
+    my ($app, $plugin, $id) = @_;
     ###l4p $logger ||= MT::Log::Log4perl->new(); $logger->trace();
     ###l4p $logger->info("Looking for option definition for option: $id");
-    my $opt;
+    my @opt = ();
     # First, search the current template set's theme options
-    if ($app->blog) {
-        my $set = $app->blog->template_set;   # FIXME Needs default value
-        $id =~ s/^${set}_//;
-        ###l4p $logger->info("Searching template set $set for $id option");
-        my $r = MT->registry('template_sets');
-        ###l4p $logger->debug('Template set options $r: ', l4mtdump($r));
-        if ($r->{$set}->{'options'}) { # FIXME Could error if $r or $r->{$set} are undefined.
-            foreach (keys %{$r->{$set}->{'options'}}) {
-                next unless $id eq $_;
-                ###l4p $logger->info("Found template set option: $_");
-                $opt = $r->{$set}->{'options'}->{$id}; # FIXME Clobbers any existing value
-                ###l4p $logger->info('Set $opt: ', l4mtdump($opt));
-            }
-        }
+    my $set = $app->blog->template_set if $app->blog;
+    if ( $set ) {
+        my $set_opts       = MT->registry('template_sets')->{$set}->{options} || {};
+        (my $set_id = $id) =~ s/^${set}_//; # Template set options are namespaced
+        ###l4p $logger->info("Searching current template set for option: $set_id");
+        @opt = map  { $set_opts->{$_} }
+               grep { $set_id eq $_ } keys %$set_opts;
+        ###l4p @opt && $logger->info("Found option in $set template set options using option ID: $set_id");
     }
     # Next, if a theme option was not found, search plugin options
-    unless ($opt) {
-        ###l4p $logger->info('No theme option found, searching plugin options');
-        my $r = MT->registry('options');
-        ###l4p $logger->debug('Registry options $r: ', l4mtdump($r));
-        if ($r) {
-            foreach (keys %{$r}) {
-                next unless $id eq $_;
-                ###l4p $logger->info("Found MT registry option: $_");
-                $opt = $r->{$id}; # FIXME Clobbers any existing value
-                ###l4p $logger->info('Set $opt: ', l4mtdump($opt));
-            }
-        }
+    unless (@opt) {
+        my $reg_opts = MT->registry('options') || {};
+        my $reg_id   = lc($plugin->id).'_'.$id; # Template set options are namespaced
+        ###l4p $logger->info("No theme option found, searching plugin options fpr $reg_id");
+        ###l4p $logger->debug('Registry options $reg_opts: ', l4mtdump($reg_opts));
+        @opt = map  { $reg_opts->{$_} }
+               grep { $reg_id eq $_ } keys %$reg_opts;
     }
-    ###l4p $logger->info('Final $opt returned: ', l4mtdump($opt));
-    return $opt;
+    if ( @opt > 1 ) {
+        my $err = sprintf "Conflicting options found with option ID %s", $id;
+        MT->log({
+            message => $err,
+            level   => MT::Log::ERROR(),
+        });
+        ###l4p $logger->error($err, l4mtdump( \@opt ));
+        return;
+    }
+    elsif ( ! @opt ) {
+        my $err = sprintf "No options found for option ID %s", $id;
+        MT->log({
+            message => $err,
+            level   => MT::Log::ERROR(),
+        });
+        ###l4p $logger->error($err);
+        return;
+    }
+    ###l4p $logger->info('Final $opt returned: ', l4mtdump(shift @opt));
+    return shift @opt;
 }
 
 sub find_theme_plugin {

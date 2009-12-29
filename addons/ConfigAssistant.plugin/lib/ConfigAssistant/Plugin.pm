@@ -200,7 +200,7 @@ sub save_config {
                            || (defined $old && ! defined $new);
             ###l4p $logger->debug('$has_changed: '.$has_changed);
             
-            my $opt = find_option_def($app, $var);
+            my $opt = find_option_def($app, $plugin, $var);
             if ($has_changed && $opt && $opt->{'republish'}) {
                 foreach (split(',',$opt->{'republish'})) {
                     $repub_queue->{$_} = 1;

@@ -31,8 +31,11 @@ sub init_options {
     
     for my $sig ( keys %MT::Plugins ) {
         my $plugin = $MT::Plugins{$sig};
+        ###l4p $logger->debug('$plugin: ', l4mtdump($plugin));
         my $obj    = $MT::Plugins{$sig}{object};
         my $r      = $obj->{registry};
+        ###l4p $logger->debug('BEFORE $obj->{registry}->{settings}: ', l4mtdump($obj->{registry}->{settings} || {}));
+
         my @sets   = keys %{ $r->{'template_sets'} };
         foreach my $set (@sets) {
             if ( $r->{'template_sets'}->{$set}->{'options'} ) {
@@ -48,7 +51,7 @@ sub init_options {
 # key.
                     my $optname = $set . '_' . $opt;
                     if ( _option_exists($sig,$optname) ) {
-                        # do nothing
+                        # do nothing # FIXME We should warn the user with an activity log message, no?!
                     }
                     else {
 #                        if ( my $default = $option->{default} ) {
@@ -59,12 +62,12 @@ sub init_options {
 #                        }
                         if (ref $obj->{'registry'}->{'settings'} eq 'ARRAY') {
                             push @{ $obj->{'registry'}->{'settings'} }, [ $optname, {
-                                scope => 'blog',
+                                scope => 'blog', # FIXME If you want to force blog scope these are backwards
                                 %$option,
                             } ];
                         } else { # (ref $obj->{'registry'}->{'settings'} eq 'HASH') {
                             $obj->{'registry'}->{'settings'}->{$optname} = {
-                                scope => 'blog',
+                                scope => 'blog', # FIXME If you want to force blog scope these are backwards
                                 %$option,
                             };
                         }
@@ -78,6 +81,7 @@ sub init_options {
             next if ( $opt eq 'fieldsets' );
             my $option = $r->{'options'}->{$opt};
 
+            # FIXME Should one of the values -- system or blog -- be default? What happens if you don't specify either?
             if ($option->{scope}||'' eq 'system') {
                 require ConfigAssistant::Plugin;
                 $obj->{'registry'}->{'system_config_template'} 
@@ -90,7 +94,7 @@ sub init_options {
             }
 
             if ( _option_exists($sig,$opt) ) {
-                # do nothing
+                # do nothing # FIXME We should warn the user with an activity log message, no?!
             }
             else {
                 if (ref $obj->{'registry'}->{'settings'} eq 'ARRAY') {
@@ -104,20 +108,21 @@ sub init_options {
                 }
             }
         }
+        ###l4p $logger->debug('AFTER $obj->{registry}->{settings}: ', l4mtdump($obj->{registry}->{settings} || {}));
     }
 }
 
 sub _option_exists {
     my ($sig, $opt) = @_;
     my $obj    = $MT::Plugins{$sig}{object};
-    if (ref $obj->{'registry'}->{'settings'} eq 'ARRAY') {
-	my @settings = $obj->{'registry'}->{'settings'}->{$opt};
-	foreach (@settings) {
-	    return 1 if $opt eq $_[0];
-	}
-	return 0;
+    if (ref $obj->{'registry'}->{'settings'} eq 'ARRAY') {       # FIXME You discover an array ref
+        my @settings = $obj->{'registry'}->{'settings'}->{$opt}; # FIXME And treat it like a hashref?!
+        foreach (@settings) {
+            return 1 if $opt eq $_[0]; # FIXME Use of $_[0] here cannot possibly be right
+        }
+        return 0;
     } elsif (ref $obj->{'registry'}->{'settings'} eq 'HASH') {
-	return $obj->{'registry'}->{'settings'}->{$opt} ? 1 : 0;
+        return $obj->{'registry'}->{'settings'}->{$opt} ? 1 : 0;
     }
     return 0;
 }
