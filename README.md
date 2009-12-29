@@ -3,7 +3,7 @@
 _**Note to Melody users:** This plugin's functionality is already core in
 Melody so separate installation is neither required nor advisable._
 
-This plugin is allows theme and plugin developers to easily surface a form 
+This plugin allows theme and plugin developers to easily surface a form 
 within Movable Type for configuring their theme/plugin. In addition, it allows
 theme and plugin developers to define template tags by which they can access
 the values entered in by their users directly within their templates.
