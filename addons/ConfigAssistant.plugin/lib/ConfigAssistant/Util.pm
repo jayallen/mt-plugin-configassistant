@@ -31,7 +31,7 @@ sub find_option_def {
     # First, search the current template set's theme options
     if ($app->blog) {
         my $set = $app->blog->template_set;   # FIXME Needs default value
-        $id =~ s/^($set)_//;
+        $id =~ s/^${set}_//;
         ###l4p $logger->info("Searching template set $set for $id option");
         my $r = MT->registry('template_sets');
         ###l4p $logger->debug('Template set options $r: ', l4mtdump($r));
