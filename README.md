@@ -1,3 +1,8 @@
+# Config Assistant, a plugin for Movable Type #
+
+_**Note to Melody users:** This plugin's functionality is already core in
+Melody so separate installation is neither required nor advisable._
+
 This plugin is allows theme and plugin developers to easily surface a form 
 within Movable Type for configuring their theme/plugin. In addition, it allows
 theme and plugin developers to define template tags by which they can access
@@ -16,17 +21,17 @@ design menu so they can easily access the settings you define.
 The sample config file below should give you a quick understanding of how you
 can begin using this plugin today.
 
-# Prerequisites
+## Prerequisites ##
 
 * Movable Type 4.1 or higher
 
-# Installation
+## Installation ##
 
 This plugin is installed [just like any other Movable Type Plugin](http://www.majordojo.com/2008/12/the-ultimate-guide-to-installing-movable-type-plugins.php).
 
-# Reference and Documentation
+## Reference and Documentation ##
 
-## Using Config Assistant for Theme Options
+### Using Config Assistant for Theme Options ###
 
 This plugin adds support for a new element in any plugin's `config.yaml` file called
 `options`, which is placed as a descendant to a defined template set. When a user of 
@@ -64,7 +69,7 @@ be taken directly to a page on which they can edit all of their theme's settings
                     condition: > 
                       sub { return 1; }
 
-## Using Config Assistant for Plugin Settings
+### Using Config Assistant for Plugin Settings ###
 
 To use Config Assistant as the rendering and enablement platform for plugin
 settings, use the same `options` struct you would for theme options, but use
@@ -92,7 +97,7 @@ to specify the following elements in their plugin's config.yaml files:
 * `blog_config_template`
 * `system_config_template`
 
-## Fields
+### Fields ###
 
 Each field definition supports the following properties:
 
@@ -115,7 +120,7 @@ Each field definition supports the following properties:
   blog specific) determines whether the config option will be rendered at the blog
   level or system level.
 
-### Supported Field Types
+#### Supported Field Types ####
 
 Below is a list of acceptable values for the `type` parameter for any defined 
 field:
@@ -164,7 +169,7 @@ mt-static directory. Confused? I think a sample will make it perfectly clear:
         values: >
           "plugins/Foo/layout-1.png":"Layout 1","plugins/Foo/layout-2.png":"Layout 2"
 
-### Defining Custom Field Types
+#### Defining Custom Field Types ####
 
 To define your own form field type, you first need to register your type and 
 type handler in your plugin's `config.yaml` file, like so:
@@ -202,7 +207,7 @@ With these two tasks complete, you can now use your new config type in your temp
             label: 'My Setting'
             default: 'bar'
 
-## Defining Template Tags
+### Defining Template Tags ###
 
 Each plugin configuration field can define a template tag by which a designer
 or developer can access its value. If a tag name terminates in a question mark
@@ -228,13 +233,13 @@ options:
       Feedburner is disabled!
     </mt:IfFeedburner>
 
-## Callbacks
+### Callbacks ###
 
 Config Assistant supports a number of callbacks to give developers the ability
 to respond to specific change events for options at a theme and plugin level.
 All of these callbacks are in the `options_change` callback family.
 
-### On Single Option Change
+#### On Single Option Change ####
 
 Config Assistant defines a callback which can be
 triggered when a specific theme option changes value or when any theme option 
@@ -274,7 +279,7 @@ When the callback is invoked, it will be invoked with the following input parame
 hash, but prior to the hash being saved. This gives developers the opportunity to change
 the value of the config value one last time before being committed to the database.**
 
-### On Plugin Option Change
+#### On Plugin Option Change ####
 
 Config Assistat has the ability to trigger a callback when any option within a 
 plugin changes. To register a callback of this nature you would use the following
@@ -288,7 +293,7 @@ When the callback is invoked, it will be invoked with the following input parame
 * `$app` - A reference to the MT::App instance currently in-context.
 * `$plugin` - A reference to the plugin object that was changed
 
-# Sample config.yaml
+## Sample config.yaml ##
 
     blog_config_template: '<mt:PluginConfigForm id="MyPluginID">'
     plugin_config:
@@ -302,11 +307,11 @@ When the callback is invoked, it will be invoked with the following input parame
                     hint: "This is the name of your Feedburner feed."
                     tag: 'MyPluginFeedburnerID'
 
-# Support
+## Support ##
 
 http://forums.movabletype.org/codesixapartcom/project-support/
 
-# Info
+## Info ##
 
 This plugin is not necessary in Melody, as this is core component of that platform.
 
