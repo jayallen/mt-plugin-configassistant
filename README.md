@@ -254,7 +254,8 @@ use this syntax:
 
 When the callback is invoked, it will be invoked with the following input parameters:
 
-* `$app` - A reference to the MT::App instance currently in-context.
+* `$cb` - The MT::Callback object for the current callback.
+* `$app` - An object instance for the currently running app, most likely an MT::App subclass.
 * `$option_hash` - A reference to a hash containing the name/value pairs representing
   this modified theme option in the registry.
 * `$old_value` - The value of the option prior to being modified.
@@ -263,8 +264,12 @@ When the callback is invoked, it will be invoked with the following input parame
 **Example**
 
     sub my_handler {
-      my ($app, $option, $old, $new) = @_;
-      MT->log({ message => "Changing " . $option->label . " from $old to $new." });
+      my ($cb, $app, $option_hash, $old_value, $new_value) = @_;
+      MT->log({
+          message =>   "Changing "
+                     . $option_hash->{label}
+                     . " from $old_value to $new_value."
+      });
     }
 
 **Note: The callback is invoked after the new value has been inserted into the config
